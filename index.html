@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DropForge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="balance"></div>
+
+<div class="container">
+<button onclick="openLegendCase()">💎 The Legend Case</button>
+<button onclick="usePromo()">🎟️ Promo Codes</button>
+<button onclick="showInventory()">🎒 Inventory</button>
+<button onclick="adminLogin()">🧑‍💼 Admin</button>
+</div>
+
+<div id="roll"></div>
+<h2 id="res"></h2>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+let coins = 1000;
+let inventory = [];
+
+const balanceUI = document.getElementById("balance");
+
+function updateBalance(){
+balanceUI.innerText = "💰 Balance: " + coins;
+}
+
+updateBalance();
+
+// CASE
+const legendCase = {
+price: 100,
+items: [
+{ name:"AK-47 | Neon Flow", chance:40, rarity:"common" },
+{ name:"M4A1 | Cyber Dust", chance:30, rarity:"rare" },
+{ name:"USP | Blue Edge", chance:20, rarity:"epic" },
+{ name:"🔪 Shadow Knife", chance:9.999, rarity:"legendary" },
+{ name:"💎 ARC KNIFE", chance:0.001, rarity:"arcana" }
+]
+};
+
+async function openLegendCase(){
+
+if(coins < legendCase.price){
+alert("❌ Not enough coins");
+return;
+}
+
+coins -= legendCase.price;
+updateBalance();
+
+let roll = document.getElementById("roll");
+let res = document.getElementById("res");
+
+for(let i=0;i<15;i++){
+roll.innerText = legendCase.items[Math.floor(Math.random()*legendCase.items.length)].name;
+await new Promise(r=>setTimeout(r,60));
+}
+
+let r = Math.random()*100;
+let sum = 0;
+let win = legendCase.items[0];
+
+for(let item of legendCase.items){
+sum += item.chance;
+if(r <= sum){
+win = item;
+break;
+}
+}
+
+inventory.push(win);
+res.innerText = "🎁 " + win.name;
+
+if(win.rarity === "arcana"){
+res.style.color = "#c77dff";
+res.style.textShadow = "0 0 12px #b86bff";
+}
+}
+
+// INVENTORY
+function showInventory(){
+if(inventory.length === 0){
+alert("Empty inventory");
+return;
+}
+
+alert(inventory.map(i=>"• "+i.name).join("\n"));
+}
+
+// PROMO
+let promos = {
+"FREECASE": { reward: 200, uses: 3 },
+"ARCANA": { reward: 500, uses: 1 }
+};
+
+function usePromo(){
+let code = prompt("Enter promo code:");
+
+let p = promos[code];
+
+if(!p){
+alert("❌ такого промокода не существует!");
+return;
+}
+
+if(p.uses <= 0){
+alert("💀 этот промокод больше не работает!");
+return;
+}
+
+p.uses--;
+coins += p.reward;
+
+alert("🎉 +"+p.reward+" coins");
+updateBalance();
+}
+
+// ADMIN
+const ADMIN_PASS = "1234";
+
+function adminLogin(){
+let pass = prompt("Admin password:");
+
+if(pass !== ADMIN_PASS){
+alert("❌ Wrong password");
+return;
+}
+
+let a = prompt("1-create promo\n2-view promos");
+
+if(a==="1"){
+let c = prompt("code");
+let r = Number(prompt("reward"));
+let u = Number(prompt("uses"));
+promos[c] = { reward:r, uses:u };
+alert("created");
+}
+
+if(a==="2"){
+alert(JSON.stringify(promos,null,2));
+}
+} 
+let coins = 1000;
+let inventory = [];
+
+const balanceUI = document.getElementById("balance");
+
+function updateBalance(){
+balanceUI.innerText = "💰 Balance: " + coins;
+}
+
+updateBalance();
+
+// CASE
+const legendCase = {
+price: 100,
+items: [
+{ name:"AK-47 | Neon Flow", chance:40, rarity:"common" },
+{ name:"M4A1 | Cyber Dust", chance:30, rarity:"rare" },
+{ name:"USP | Blue Edge", chance:20, rarity:"epic" },
+{ name:"🔪 Shadow Knife", chance:9.999, rarity:"legendary" },
+{ name:"💎 ARC KNIFE", chance:0.001, rarity:"arcana" }
+]
+};
+
+async function openLegendCase(){
+
+if(coins < legendCase.price){
+alert("❌ Not enough coins");
+return;
+}
+
+coins -= legendCase.price;
+updateBalance();
+
+let roll = document.getElementById("roll");
+let res = document.getElementById("res");
+
+for(let i=0;i<15;i++){
+roll.innerText = legendCase.items[Math.floor(Math.random()*legendCase.items.length)].name;
+await new Promise(r=>setTimeout(r,60));
+}
+
+let r = Math.random()*100;
+let sum = 0;
+let win = legendCase.items[0];
+
+for(let item of legendCase.items){
+sum += item.chance;
+if(r <= sum){
+win = item;
+break;
+}
+}
+
+inventory.push(win);
+res.innerText = "🎁 " + win.name;
+
+if(win.rarity === "arcana"){
+res.style.color = "#c77dff";
+res.style.textShadow = "0 0 12px #b86bff";
+}
+}
+
+// INVENTORY
+function showInventory(){
+if(inventory.length === 0){
+alert("Empty inventory");
+return;
+}
+
+alert(inventory.map(i=>"• "+i.name).join("\n"));
+}
+
+// PROMO
+let promos = {
+"FREECASE": { reward: 200, uses: 3 },
+"ARCANA": { reward: 500, uses: 1 }
+};
+
+function usePromo(){
+let code = prompt("Enter promo code:");
+
+let p = promos[code];
+
+if(!p){
+alert("❌ такого промокода не существует!");
+return;
+}
+
+if(p.uses <= 0){
+alert("💀 этот промокод больше не работает!");
+return;
+}
+
+p.uses--;
+coins += p.reward;
+
+alert("🎉 +"+p.reward+" coins");
+updateBalance();
+}
+
+// ADMIN
+const ADMIN_PASS = "1234";
+
+function adminLogin(){
+let pass = prompt("Admin password:");
+
+if(pass !== ADMIN_PASS){
+alert("❌ Wrong password");
+return;
+}
+
+let a = prompt("1-create promo\n2-view promos");
+
+if(a==="1"){
+let c = prompt("code");
+let r = Number(prompt("reward"));
+let u = Number(prompt("uses"));
+promos[c] = { reward:r, uses:u };
+alert("created");
+}
+
+if(a==="2"){
+alert(JSON.stringify(promos,null,2));
+}
+}
