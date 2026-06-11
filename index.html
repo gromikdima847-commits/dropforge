@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>DropForge Market V5</title>
+
+<style>
+html,body{
+margin:0;
+padding:0;
+font-family:Arial;
+background:#0b0f1a;
+color:white;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+background:#111827;
+}
+
+.logo{color:#4cc2ff;font-weight:bold}
+
+.balance{
+background:#1f2937;
+padding:8px 12px;
+border-radius:10px;
+}
+
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+padding:20px;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+border-radius:12px;
+padding:15px;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#222;
+color:white;
+}
+
+button:hover{background:#333}
+
+#hud{
+display:flex;
+gap:10px;
+padding:10px 20px;
+}
+
+.hudbox{
+background:#0f172a;
+padding:8px 12px;
+border-radius:10px;
+}
+
+#roll,#res{
+text-align:center;
+margin-top:10px;
+font-size:20px;
+}
+
+#inv{
+display:none;
+padding:20px;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:10px;
+}
+
+.item{
+background:#0f172a;
+padding:10px;
+border-radius:10px;
+text-align:center;
+border:1px solid #222;
+cursor:pointer;
+}
+
+.glow{
+animation:glow 0.5s;
+}
+
+@keyframes glow{
+0%{box-shadow:0 0 0}
+50%{box-shadow:0 0 20px #4cc2ff}
+100%{box-shadow:0 0 0}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">💎 DropForge Market V5</div>
+<div class="balance" id="bal">💰 100</div>
+</header>
+
+<div id="hud">
+<div class="hudbox" id="lvl">⭐ LVL 1</div>
+</div>
+
+<div class="container" id="shop"></div>
+
+<div id="roll"></div>
+<div id="res"></div>
+
+<div id="inv"></div>
+
+<script>
+
+let coins=100;
+let xp=0;
+let lvl=1;
+let pity=0;
+
+/* INVENTORY WITH PRICE */
+let inv={};
+
+/* SELL PRICES */
+const prices={
+"Blue Skin":5,
+"Gold Knife":20,
+"ARCANA":50
+};
+
+const bal=document.getElementById("bal");
+const roll=document.getElementById("roll");
+const res=document.getElementById("res");
+
+/* CASES */
+const cases=[
+{name:"Дешёвый кейс",price:10,item:"Blue Skin",rarity:"common"},
+{name:"Редкий кейс",price:25,item:"Gold Knife",rarity:"rare"},
+{name:"Легенда кейс",price:50,item:"ARCANA",rarity:"legendary"}
+];
+
+function update(){
+bal.innerText="💰 "+coins;
+document.getElementById("lvl").innerText="⭐ LVL "+lvl;
+}
+
+/* SHOP */
+function renderShop(){
+document.getElementById("shop").innerHTML=
+cases.map((c,i)=>
+`
+<div class="card">
+<h3>${c.name}</h3>
+<p>Цена: ${c.price}</p>
+<button onclick="openCase(${i})">Открыть</button>
+</div>
+`
+).join("");
+}
+
+/* SPIN */
+async function spin(text){
+for(let i=0;i<20;i++){
+roll.innerText="🎡 "+cases[Math.floor(Math.random()*cases.length)].item;
+await new Promise(r=>setTimeout(r,35));
+}
+roll.innerText="🎁 "+text;
+}
+
+/* OPEN CASE */
+async function openCase(i){
+
+let c=cases[i];
+if(coins<c.price) return;
+
+coins-=c.price;
+
+await spin(c.item);
+
+/* add item */
+if(!inv[c.item]) inv[c.item]=0;
+inv[c.item]++;
+
+res.innerText="🎁 "+c.item;
+
+/* glow */
+if(c.rarity==="legendary"){
+document.body.classList.add("glow");
+setTimeout(()=>document.body.classList.remove("glow"),500);
+pity=0;
+}else{
+pity++;
+}
+
+xp+=10;
+if(xp>=100){
+xp=0;
+lvl++;
+coins+=20;
+}
+
+update();
+renderInv();
+}
+
+/* INVENTORY + SELL */
+function renderInv(){
+document.getElementById("inv").innerHTML=
+Object.keys(inv).map(k=>
+`
+<div class="item" onclick="sell('${k}')">
+${k}<br>x${inv[k]}<br>💰 ${prices[k]||1}
+</div>
+`
+).join("");
+}
+
+/* SELL SYSTEM */
+function sell(name){
+if(!inv[name]||inv[name]<=0) return;
+
+inv[name]--;
+coins+=(prices[name]||1);
+
+if(inv[name]<=0) delete inv[name];
+
+update();
+renderInv();
+}
+
+/* UPDATE */
+function update(){
+bal.innerText="💰 "+coins;
+}
+
+/* SHOW INV */
+document.getElementById("inv").style.display="none";
+
+function showInv(){
+document.getElementById("inv").style.display="grid";
+renderInv();
+}
+
+/* INIT */
+renderShop();
+update();
+
+</script>
+
+</body>
+</html>
