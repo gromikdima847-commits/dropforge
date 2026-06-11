@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DropForge ULTRA+</title>
+
+<style>
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:radial-gradient(circle at top,#1a1f3a,#0b0f1a);
+font-family:Arial;
+color:white;
+overflow:hidden;
+}
+
+#balance{
+position:fixed;
+top:15px;
+right:15px;
+background:rgba(0,0,0,0.6);
+padding:10px 15px;
+border-radius:12px;
+font-weight:bold;
+}
+
+.menu{
+display:flex;
+flex-direction:column;
+gap:10px;
+align-items:center;
+}
+
+button{
+width:220px;
+padding:12px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:linear-gradient(90deg,#222,#333);
+color:white;
+transition:0.2s;
+}
+
+button:hover{
+transform:scale(1.05);
+background:linear-gradient(90deg,#333,#444);
+}
+
+#roll{
+margin-top:20px;
+opacity:0.7;
+font-size:18px;
+}
+
+#res{
+margin-top:10px;
+font-size:22px;
+}
+
+#inv{
+margin-top:20px;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:10px;
+width:250px;
+text-align:left;
+}
+</style>
+</head>
+
+<body>
+
+<div id="balance">💰 100</div>
+
+<div class="menu">
+<button onclick="openCase()">💎 Open Case</button>
+<button onclick="usePromo()">🎟️ Promo</button>
+<button onclick="showInv()">🎒 Inventory</button>
+<button onclick="admin()">🧑‍💼 Admin</button>
+</div>
+
+<div id="roll"></div>
+<div id="res"></div>
+
+<script>
+/* =========================
+   1. CORE SYSTEM
+========================= */
+let coins = 100;
+let inv = [];
+
+const balance = document.getElementById("balance");
+const roll = document.getElementById("roll");
+const res = document.getElementById("res");
+
+function update(){
+balance.innerText = "💰 " + coins;
+}
+update();
+
+/* =========================
+   2. CASE SYSTEM
+========================= */
+const caseData = {
+price: 39,
+items:[
+{name:"Sticker",chance:35,color:"#aaa"},
+{name:"Pistol",chance:25,color:"#aaa"},
+{name:"AK Skin",chance:18,color:"#4cc2ff"},
+{name:"M4 Skin",chance:12,color:"#4cc2ff"},
+{name:"Knife",chance:7,color:"#ffb84c"},
+{name:"ARCANA",chance:3,color:"#ff4cf0"}
+]
+};
+
+/* =========================
+   3. OPEN CASE (animation)
+========================= */
+async function openCase(){
+
+if(coins < caseData.price){
+alert("No coins");
+return;
+}
+
+coins -= caseData.price;
+update();
+
+res.innerText = "";
+
+for(let i=0;i<20;i++){
+roll.innerText = caseData.items[Math.floor(Math.random()*caseData.items.length)].name;
+await new Promise(r=>setTimeout(r,60));
+}
+
+/* drop */
+let r = Math.random()*100;
+let sum = 0;
+let win = caseData.items[0];
+
+for(let i of caseData.items){
+sum += i.chance;
+if(r<=sum) win=i;
+}
+
+inv.push(win);
+
+/* result */
+res.innerText = "🎁 " + win.name;
+res.style.color = win.color;
+
+/* glow */
+res.style.textShadow = "0 0 15px " + win.color;
+
+renderInv();
+}
+
+/* =========================
+   4. INVENTORY UI
+========================= */
+function renderInv(){
+let old=document.getElementById("inv");
+if(old) old.remove();
+
+let box=document.createElement("div");
+box.id="inv";
+
+box.innerHTML="<b>🎒 Inventory</b><br>" +
+inv.map(i=>"• "+i.name).join("<br>");
+
+document.body.appendChild(box);
+}
+
+/* =========================
+   5. PROMO SYSTEM
+========================= */
+let promos={
+"FREE":{reward:20,uses:3},
+"LEGEND":{reward:100,uses:1}
+};
+
+function usePromo(){
+let c=prompt("code");
+let p=promos[c];
+
+if(!p){
+alert("bad code");
+return;
+}
+
+if(p.uses<=0){
+alert("expired");
+return;
+}
+
+p.uses--;
+coins+=p.reward;
+update();
+}
+
+/* =========================
+   6. ADMIN PANEL
+========================= */
+function admin(){
+let p=prompt("pass");
+
+if(p!="1234"){
+alert("wrong");
+return;
+}
+
+let a=prompt("1 promo\n2 view");
+
+if(a=="1"){
+let c=prompt("code");
+let r=+prompt("reward");
+let u=+prompt("uses");
+promos[c]={reward:r,uses:u};
+}
+
+if(a=="2"){
+alert(JSON.stringify(promos,null,2));
+}
+}
+
+/* =========================
+   7. EXTRA FEATURES (mini pack)
+========================= */
+// auto balance save
+setInterval(()=>localStorage.setItem("coins",coins),2000);
+
+// load
+let saved=localStorage.getItem("coins");
+if(saved) coins=+saved,update();
+
+// smooth hover effect soundless UX
+document.addEventListener("click",()=>{});
+</script>
+
+</body>
+</html>
