@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DropForge GOD MODE V4</title>
+
+<style>
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-family:Arial;
+color:white;
+background:radial-gradient(circle,#0b1630,#05060a);
+overflow:hidden;
+}
+
+#hud{
+position:fixed;
+top:10px;
+display:flex;
+gap:10px;
+}
+
+.box{
+background:rgba(0,0,0,0.6);
+padding:8px 12px;
+border-radius:10px;
+font-weight:bold;
+}
+
+.menu{
+display:flex;
+flex-direction:column;
+gap:10px;
+align-items:center;
+}
+
+button{
+width:240px;
+padding:12px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:linear-gradient(90deg,#222,#333);
+color:white;
+transition:0.2s;
+}
+
+button:hover{transform:scale(1.05)}
+
+#roll{margin-top:20px;font-size:18px}
+#res{margin-top:10px;font-size:26px}
+
+#inv{
+margin-top:20px;
+width:340px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:6px;
+padding:10px;
+background:rgba(0,0,0,0.4);
+border-radius:12px;
+}
+
+.card{
+background:#111;
+padding:6px;
+border-radius:8px;
+font-size:12px;
+text-align:center;
+}
+
+small{
+opacity:0.6;
+font-size:11px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="hud">
+<div class="box" id="lvl">⭐ LVL 1 | XP 0</div>
+<div class="box" id="bal">💰 100</div>
+</div>
+
+<div class="menu">
+<button onclick="openCase()">🎡 Open Case</button>
+<button onclick="usePromo()">🎟️ Promo</button>
+<button onclick="shop()">🏪 Shop</button>
+<button onclick="admin()">🧑‍💼 Admin</button>
+<button onclick="showInv()">🎒 Inventory</button>
+</div>
+
+<div id="roll"></div>
+<div id="res"></div>
+<div id="inv"></div>
+
+<script>
+
+/* =========================
+   CORE STATE
+========================= */
+let coins=100;
+let xp=0;
+let lvl=1;
+let inv=[];
+let streak=0;
+let pity=0;
+let fail=0;
+let profit=0;
+let spent=0;
+
+let promos={
+"FREE":{reward:100,uses:5},
+"LUCK":{reward:200,uses:3}
+};
+
+/* =========================
+   UI
+========================= */
+const bal=document.getElementById("bal");
+const lvlUI=document.getElementById("lvl");
+const roll=document.getElementById("roll");
+const res=document.getElementById("res");
+
+/* =========================
+   UPDATE
+========================= */
+function update(){
+bal.innerText="💰 "+coins;
+lvlUI.innerText="⭐ LVL "+lvl+" | XP "+xp;
+}
+
+/* =========================
+   SAVE SYSTEM
+========================= */
+function save(){
+localStorage.setItem("save",JSON.stringify({
+coins,xp,lvl,inv,streak,pity,fail,profit,spent,promos
+}));
+}
+
+function load(){
+let d=JSON.parse(localStorage.getItem("save"));
+if(!d) return;
+Object.assign(window,d);
+}
+
+/* =========================
+   LUCK ENGINE
+========================= */
+function luck(){
+return 1 + pity*0.03 + streak*0.04;
+}
+
+/* =========================
+   CASE SYSTEM (2 CASES)
+========================= */
+const cases={
+cheap:{
+price:10,
+items:[
+{name:"Rust Gun",chance:50,color:"#aaa"},
+{name:"Blue Gun",chance:30,color:"#4cc2ff"},
+{name:"Gold Knife",chance:20,color:"#ffcc4c"}
+]
+},
+legend:{
+price:39,
+items:[
+{name:"AK Neon",chance:40,color:"#4cc2ff"},
+{name:"M4 Cyber",chance:30,color:"#4cc2ff"},
+{name:"Dragon Knife",chance:20,color:"#ffb84c"},
+{name:"ARCANA",chance:10,color:"#ff4cf0"}
+]
+}
+};
+
+/* =========================
+   SPIN
+========================= */
+async function spin(items){
+for(let i=0;i<25;i++){
+let f=items[Math.floor(Math.random()*items.length)];
+roll.innerText="🎡 "+f.name;
+await new Promise(r=>setTimeout(r,35+i*4));
+}
+}
+
+/* =========================
+   OPEN CASE
+========================= */
+let cooldown=false;
+
+async function openCase(type="legend"){
+
+let c=cases[type];
+
+if(coins<c.price) return;
+
+coins-=c.price;
+spent+=c.price;
+fail++;
+
+cooldown=true;
+setTimeout(()=>cooldown=false,800);
+
+await spin(c.items);
+
+let r=(Math.random()*100)/luck();
+let sum=0;
+let win=c.items[0];
+
+for(let i of c.items){
+sum+=i.chance;
+if(r<=sum) win=i;
+}
+
+inv.push(win);
+
+/* DROP */
+res.innerText="🎁 "+win.name;
+res.style.color=win.color;
+
+/* SYSTEMS */
+if(win.name==="ARCANA"){
+streak=0;pity=0;
+document.body.style.filter="brightness(1.5)";
+setTimeout(()=>document.body.style.filter="brightness(1)",150);
+}else{
+streak++;pity++;
+}
+
+/* XP + LEVEL */
+xp+=12;
+if(xp>=100){
+xp=0;
+lvl++;
+coins+=25;
+}
+
+/* PROFIT */
+profit+=20;
+
+/* SAVE */
+save();
+update();
+renderInv();
+}
+
+/* =========================
+   INVENTORY GRID
+========================= */
+function renderInv(){
+let box=document.getElementById("inv");
+box.innerHTML=inv.map(i=>`<div class="card">🎁 ${i.name}</div>`).join("");
+}
+
+function showInv(){renderInv()}
+
+/* =========================
+   PROMO
+========================= */
+function usePromo(){
+let c=prompt("code");
+let p=promos[c];
+if(!p) return;
+if(p.uses<=0) return;
+
+p.uses--;
+coins+=p.reward;
+save();
+update();
+}
+
+/* =========================
+   SHOP (LUCK BOOST)
+========================= */
+function shop(){
+if(coins<50) return;
+
+coins-=50;
+pity=Math.max(0,pity-6);
+
+alert("⚡ Luck boosted!");
+update();
+save();
+}
+
+/* =========================
+   ADMIN
+========================= */
+function admin(){
+let p=prompt("pass");
+if(p!="1234") return;
+
+let a=prompt("1-create promo\n2-view stats");
+
+if(a=="1"){
+let c=prompt("code");
+promos[c]={reward:+prompt("reward"),uses:+prompt("uses")};
+}
+
+if(a=="2"){
+alert(
+"📊 STATS\n"+
+"Profit: "+profit+"\n"+
+"Spent: "+spent+"\n"+
+"Inv: "+inv.length
+);
+}
+}
+
+/* =========================
+   INIT
+========================= */
+load();
+update();
+
+</script>
+
+</body>
+</html>
