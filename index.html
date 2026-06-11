@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>DropForge Market PRO</title>
+
+<style>
+html,body{
+margin:0;
+padding:0;
+font-family:Arial;
+background:#0b0f1a;
+color:white;
+height:100%;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+background:#111827;
+border-bottom:1px solid #222;
+}
+
+.logo{
+color:#4cc2ff;
+font-weight:bold;
+font-size:20px;
+}
+
+.balance{
+background:#1f2937;
+padding:8px 12px;
+border-radius:10px;
+}
+
+nav{
+display:flex;
+gap:10px;
+padding:10px;
+background:#0f172a;
+flex-wrap:wrap;
+}
+
+nav button{
+background:#222;
+border:none;
+padding:8px 14px;
+border-radius:10px;
+color:white;
+cursor:pointer;
+}
+
+nav button:hover{
+background:#333;
+}
+
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+padding:20px;
+}
+
+.card{
+background:#111;
+border:1px solid #222;
+border-radius:12px;
+padding:15px;
+transition:0.2s;
+}
+
+.card:hover{
+transform:scale(1.05);
+border-color:#4cc2ff;
+}
+
+.card button{
+width:100%;
+margin-top:10px;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#222;
+color:white;
+}
+
+.card button:hover{
+background:#333;
+}
+
+#inv{
+display:none;
+padding:20px;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:10px;
+}
+
+.item{
+background:#0f172a;
+padding:10px;
+border-radius:10px;
+font-size:12px;
+text-align:center;
+border:1px solid #222;
+}
+
+#roll{
+text-align:center;
+margin-top:10px;
+font-size:18px;
+}
+
+#res{
+text-align:center;
+font-size:24px;
+margin-top:5px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">💎 DropForge Market PRO</div>
+<div class="balance" id="bal">💰 100</div>
+</header>
+
+<nav>
+<button onclick="show('shop')">Магазин</button>
+<button onclick="show('inv')">Инвентарь</button>
+<button onclick="daily()">Бонус</button>
+</nav>
+
+<div id="shop" class="container"></div>
+
+<div id="roll"></div>
+<div id="res"></div>
+
+<div id="inv"></div>
+
+<script>
+
+let coins=100;
+let xp=0;
+let lvl=1;
+let inv={};
+
+const bal=document.getElementById("bal");
+const roll=document.getElementById("roll");
+const res=document.getElementById("res");
+
+/* CASES */
+const cases=[
+{name:"Дешёвый кейс",price:10,chance:70,item:"Синий скин"},
+{name:"Редкий кейс",price:25,chance:25,item:"Золотой нож"},
+{name:"Легенда кейс",price:50,chance:5,item:"ARCANA"}
+];
+
+/* UPDATE */
+function update(){
+bal.innerText="💰 "+coins+" | ⭐ "+lvl;
+}
+
+/* SHOP */
+function renderShop(){
+document.getElementById("shop").innerHTML=
+cases.map((c,i)=>
+`
+<div class="card">
+<h3>${c.name}</h3>
+<p>Цена: ${c.price}</p>
+<button onclick="openCase(${i})">Открыть</button>
+</div>
+`
+).join("");
+}
+
+/* SPIN EFFECT */
+async function spin(text){
+for(let i=0;i<20;i++){
+let r=cases[Math.floor(Math.random()*cases.length)].item;
+roll.innerText="🎡 "+r;
+await new Promise(res=>setTimeout(res,40));
+}
+roll.innerText="🎡 "+text;
+}
+
+/* CASE OPEN */
+async function openCase(i){
+
+let c=cases[i];
+if(coins<c.price) return;
+
+coins-=c.price;
+
+await spin(c.item);
+
+if(!inv[c.item]) inv[c.item]=0;
+inv[c.item]++;
+
+res.innerText="🎁 "+c.item;
+
+/* XP */
+xp+=10;
+if(xp>=100){
+xp=0;
+lvl++;
+coins+=20;
+}
+
+update();
+renderInv();
+}
+
+/* INVENTORY */
+function renderInv(){
+document.getElementById("inv").innerHTML=
+Object.keys(inv).map(k=>
+`
+<div class="item">
+🎁 ${k}<br>x${inv[k]}
+</div>
+`
+).join("");
+}
+
+/* DAILY */
+function daily(){
+coins+=50;
+update();
+}
+
+/* SWITCH */
+function show(tab){
+document.getElementById("shop").style.display="none";
+document.getElementById("inv").style.display="none";
+
+if(tab==="shop") document.getElementById("shop").style.display="grid";
+if(tab==="inv") document.getElementById("inv").style.display="grid";
+}
+
+/* INIT */
+renderShop();
+update();
+
+</script>
+
+</body>
+</html>
