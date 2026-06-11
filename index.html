@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DropForge PRO</title>
+
+<style>
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:radial-gradient(circle at top,#121a33,#070a12);
+font-family:Arial;
+color:white;
+}
+
+#balance{
+position:fixed;
+top:15px;
+right:15px;
+background:rgba(0,0,0,0.6);
+padding:10px 15px;
+border-radius:12px;
+font-weight:bold;
+}
+
+.menu{
+display:flex;
+flex-direction:column;
+gap:10px;
+align-items:center;
+}
+
+button{
+width:220px;
+padding:12px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:linear-gradient(90deg,#222,#333);
+color:white;
+transition:0.2s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+#roll{
+margin-top:20px;
+opacity:0.8;
+font-size:18px;
+}
+
+#res{
+margin-top:10px;
+font-size:22px;
+}
+
+#inv{
+margin-top:20px;
+width:260px;
+background:rgba(0,0,0,0.4);
+padding:10px;
+border-radius:10px;
+}
+
+.card{
+background:#111;
+margin:5px 0;
+padding:5px;
+border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="balance">💰 100</div>
+
+<div class="menu">
+<button onclick="openCase('cheap')">📦 Cheap Case (10)</button>
+<button onclick="openCase('legend')">💎 Legend Case (39)</button>
+<button onclick="showInv()">🎒 Inventory</button>
+<button onclick="shop()">🏪 Shop</button>
+</div>
+
+<div id="roll"></div>
+<div id="res"></div>
+
+<script>
+let coins=100;
+let inv=[];
+
+const balance=document.getElementById("balance");
+const roll=document.getElementById("roll");
+const res=document.getElementById("res");
+
+function update(){
+balance.innerText="💰 "+coins;
+}
+update();
+
+/* ================= SHOP ================= */
+const shopCases={
+cheap:{
+price:10,
+items:[
+{name:"Sticker",chance:50,color:"#aaa"},
+{name:"Pistol",chance:30,color:"#aaa"},
+{name:"AK Skin",chance:15,color:"#4cc2ff"},
+{name:"Knife (rare)",chance:5,color:"#ffb84c"}
+]
+},
+legend:{
+price:39,
+items:[
+{name:"AK Neon",chance:40,color:"#4cc2ff"},
+{name:"M4 Cyber",chance:30,color:"#4cc2ff"},
+{name:"Knife",chance:20,color:"#ffb84c"},
+{name:"ARCANA",chance:10,color:"#ff4cf0"}
+]
+}
+};
+
+/* ================= SPIN ================= */
+async function openCase(type){
+
+let c=shopCases[type];
+
+if(coins<c.price){
+alert("No coins");
+return;
+}
+
+coins-=c.price;
+update();
+
+/* spin */
+for(let i=0;i<25;i++){
+let fake=c.items[Math.floor(Math.random()*c.items.length)];
+roll.innerText="🎡 "+fake.name;
+await new Promise(r=>setTimeout(r,60+i*5));
+}
+
+/* win */
+let r=Math.random()*100;
+let sum=0;
+let win=c.items[0];
+
+for(let i of c.items){
+sum+=i.chance;
+if(r<=sum) win=i;
+}
+
+inv.push(win);
+
+res.innerText="🎁 "+win.name;
+res.style.color=win.color;
+
+renderInv();
+}
+
+/* ================= INVENTORY ================= */
+function renderInv(){
+
+let old=document.getElementById("inv");
+if(old) old.remove();
+
+let box=document.createElement("div");
+box.id="inv";
+
+box.innerHTML="<b>🎒 Inventory</b><br>"+
+inv.map(i=>`<div class="card">🎁 ${i.name}</div>`).join("");
+
+document.body.appendChild(box);
+}
+
+/* ================= SHOP UI ================= */
+function shop(){
+alert(
+"🏪 SHOP\n\nCheap Case - 10 coins\nLegend Case - 39 coins"
+);
+}
+</script>
+
+</body>
+</html>
